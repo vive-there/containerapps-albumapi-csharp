@@ -1,0 +1,42 @@
+name: Trigger auto deployment for vivethere-album-api
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - 'src/**'
+    - '.github/workflows/vivethere-album-api-AutoDeployTrigger-11c0bca3-063e-4623-aaa7-d2d624266879.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.VIVETHEREALBUMAPI_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}/src 
+          registryUrl: ca5dfd580c8bacr.azurecr.io
+          registryUsername: ${{ secrets.VIVETHEREALBUMAPI_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.VIVETHEREALBUMAPI_REGISTRY_PASSWORD }}
+          containerAppName: vivethere-album-api
+          resourceGroup: vivethere-album
+          imageToBuild: ca5dfd580c8bacr.azurecr.io/vivethere-album-api:${{ github.sha }}
+          dockerfilePath: Dockerfile
+
+     
+
